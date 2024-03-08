@@ -1,5 +1,9 @@
 # 廢土鐵原礦機器人
  一個可以把鐵錠變成鐵原礦的機器人
+ 
+# 如何下載
+1. 至 [這個連結](https://github.com/jimmy20180130/mcf-iron-bot/archive/refs/heads/main.zip) 下載檔案
+2. 下載完後解壓縮即可接續下一部分
 
 # 如何使用
 1. 先蓋一個 3 x 3 x 3 的空間，並在正中央設立一個為 mine 的家點
