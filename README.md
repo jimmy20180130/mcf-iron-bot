@@ -1,2 +1,10 @@
-# mcf-iron-bot
- a minecraft bot that can make iron ingot into raw iron block
+# 廢土鐵原礦機器人
+ 一個可以把鐵錠變成鐵原礦的機器人
+
+# 如何使用
+1. 先蓋一個 3 x 3 x 3 的空間，並在正中央設立一個為 mine 的家點
+2. 在機器人可觸範圍內，蓋手動卸盒機
+3. 移除機器人附近的界符盒，只留下拆盒機的界符盒
+4. 在旁邊蓋漏斗礦車分類器，並蓋裝盒機 (可視情況增減)
+5. 打開 config.json ，並把 example@example.com 改成您的 Minecraft 帳號
+6. 打開 start.bat ，機器人將開始運行!
