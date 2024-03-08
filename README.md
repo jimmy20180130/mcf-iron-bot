@@ -8,3 +8,4 @@
 4. 在旁邊蓋漏斗礦車分類器，並蓋裝盒機 (可視情況增減)
 5. 打開 config.json ，並把 example@example.com 改成您的 Minecraft 帳號
 6. 打開 start.bat ，機器人將開始運行!
+7. 如果不會的話可以參考 /waro god2itachi_8 底下的配置
