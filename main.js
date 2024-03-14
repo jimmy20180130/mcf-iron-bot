@@ -93,6 +93,23 @@ const initBot = () => {
                     console.log('mine_iron_ore')
                     await mine_iron_ore(bot)
 
+                    if (heldItem) {
+                        console.log(`手上工具耐久度: ${(heldItem.maxDurability-heldItem.durabilityUsed).toFixed()} / ${heldItem.maxDurability}`); // durability of held item
+                    }
+
+                    if ((Number(heldItem.maxDurability-heldItem.durabilityUsed).toFixed()) <= 200) {
+                        bot.chat('/warp XiaoXi_YT_2')
+                        await new Promise(r => setTimeout(r, 1000));
+                        let now_durability = (Number(heldItem.maxDurability-heldItem.durabilityUsed).toFixed())
+                        while (now_durability < heldItem.maxDurability) {
+                            await new Promise(r => setTimeout(r, 1000));
+                            now_durability = (Number(heldItem.maxDurability-heldItem.durabilityUsed).toFixed())
+                            console.log(now_durability)
+                        }
+
+                        bot.chat('/back')
+                    }
+
                     await new Promise(r => setTimeout(r, 100))
                 }
 
@@ -129,6 +146,25 @@ const initBot = () => {
                     console.log('mine_iron_ore')
                     await mine_iron_ore(bot)
 
+                    const heldItem = bot.heldItem;
+
+                    if (heldItem) {
+                        console.log(`手上工具耐久度: ${(heldItem.maxDurability-heldItem.durabilityUsed).toFixed()} / ${heldItem.maxDurability}`); // durability of held item
+                    }
+
+                    if ((Number(heldItem.maxDurability-heldItem.durabilityUsed).toFixed()) <= 200) {
+                        bot.chat('/warp XiaoXi_YT_2')
+                        await new Promise(r => setTimeout(r, 1000));
+                        let now_durability = (Number(heldItem.maxDurability-heldItem.durabilityUsed).toFixed())
+                        while (now_durability < heldItem.maxDurability) {
+                            await new Promise(r => setTimeout(r, 1000));
+                            now_durability = (Number(heldItem.maxDurability-heldItem.durabilityUsed).toFixed())
+                            console.log(now_durability)
+                        }
+
+                        bot.chat('/back')
+                    }
+
                     await new Promise(r => setTimeout(r, 100))
                 }
 
@@ -148,6 +184,7 @@ const initBot = () => {
 
         while (true) {
             console.log('starting_process')
+
             change_status(bot, 'get_iron_ore')
 
             await get_iron_ore(bot)
@@ -192,6 +229,25 @@ const initBot = () => {
                 await place_iron_ore(bot)
                 console.log('mine_iron_ore')
                 await mine_iron_ore(bot)
+
+                const heldItem = bot.heldItem;
+                if (heldItem) {
+                    console.log(`手上工具耐久度: ${(heldItem.maxDurability-heldItem.durabilityUsed).toFixed()} / ${heldItem.maxDurability}`); // durability of held item
+                }
+
+                if ((Number(heldItem.maxDurability-heldItem.durabilityUsed).toFixed()) <= 200) {
+                    bot.chat('/warp XiaoXi_YT_2')
+                    await new Promise(r => setTimeout(r, 1000));
+                    let now_durability = (Number(heldItem.maxDurability-heldItem.durabilityUsed).toFixed())
+                    while (now_durability < heldItem.maxDurability) {
+                        await new Promise(r => setTimeout(r, 1000));
+                        now_durability = (Number(heldItem.maxDurability-heldItem.durabilityUsed).toFixed())
+                        console.log(now_durability)
+                    }
+
+                    bot.chat('/back')
+                }
+
                 await new Promise(r => setTimeout(r, 100))
             }
 
