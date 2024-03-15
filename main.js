@@ -93,6 +93,8 @@ const initBot = () => {
                     console.log('mine_iron_ore')
                     await mine_iron_ore(bot)
 
+                    const heldItem = bot.heldItem
+
                     if (heldItem) {
                         console.log(`手上工具耐久度: ${(heldItem.maxDurability-heldItem.durabilityUsed).toFixed()} / ${heldItem.maxDurability}`); // durability of held item
                     }
