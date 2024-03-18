@@ -16,6 +16,11 @@ async function get_iron_ore(bot) {
 
     let shulker_box_window = await bot.openContainer(shulker_box)
 
+    while (!shulker_box_window) {
+        console.log('shulker_box_window not found...\nopening shulker_box_window...')
+        shulker_box_window = await bot.openContainer(shulker_box)
+    }
+
     console.log('opened shulker_box_window')
 
     for (const item of shulker_box_window.containerItems()) {

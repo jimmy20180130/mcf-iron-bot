@@ -6,7 +6,7 @@ const Vec3 = require('vec3')
 const inventoryViewer = require('mineflayer-web-inventory');
 const { resolve } = require("path");
 const crafter = require("mineflayer-crafting-util").plugin
-const { get_iron_ore, shop_item, place_iron_ore, mine_iron_ore, throw_raw_iron_block } = require(`./iron.js`)
+const { get_iron_ore, shop_item, place_iron_ore, mine_iron_ore, throw_raw_iron_block } = require(`./new_iron.js`)
 
 let config = JSON.parse(fs.readFileSync("config.json"), 'utf8');
 
@@ -53,6 +53,8 @@ const initBot = () => {
         bot.chat('bot is online')
         console.log('[INFO] ' + `地圖已載入`);
 
+        config = JSON.parse(fs.readFileSync("config.json"), 'utf8');
+
         rl.on("line", function (line) {
             bot.chat(line)
         });
@@ -62,10 +64,15 @@ const initBot = () => {
         let cache = JSON.parse(fs.readFileSync(`${process.cwd()}/cache.json`, 'utf8'))
         let iron_ore_count = 0
 
+        await bot.chat(config.mine_warp)
+
         switch (cache.status) {
             case 'get_iron_ore':
                 break
             case 'shop_item':
+                await bot.chat(config.mine_warp)
+                await new Promise(r => setTimeout(r, 1000))
+
                 change_status(bot, 'shop_item')
                 await shop_item(bot)
 
@@ -93,23 +100,24 @@ const initBot = () => {
                     console.log('mine_iron_ore')
                     await mine_iron_ore(bot)
 
-                    const heldItem = bot.heldItem
+                    let heldItem = bot.heldItem;
 
                     if (heldItem) {
                         console.log(`手上工具耐久度: ${(heldItem.maxDurability-heldItem.durabilityUsed).toFixed()} / ${heldItem.maxDurability}`); // durability of held item
                     }
 
                     if ((Number(heldItem.maxDurability-heldItem.durabilityUsed).toFixed()) <= 200) {
-                        bot.chat('/warp XiaoXi_YT_2')
+                        bot.chat(config.exp_warp)
                         await new Promise(r => setTimeout(r, 1000));
                         let now_durability = (Number(heldItem.maxDurability-heldItem.durabilityUsed).toFixed())
                         while (now_durability < heldItem.maxDurability) {
+                            heldItem = bot.heldItem;
                             await new Promise(r => setTimeout(r, 1000));
                             now_durability = (Number(heldItem.maxDurability-heldItem.durabilityUsed).toFixed())
                             console.log(now_durability)
                         }
 
-                        bot.chat('/back')
+                        bot.chat(config.mine_warp)
                     }
 
                     await new Promise(r => setTimeout(r, 100))
@@ -121,6 +129,9 @@ const initBot = () => {
                 await new Promise(r => setTimeout(r, 100))
                 break
             case 'place_and_dig':
+                await bot.chat(config.mine_warp)
+                await new Promise(r => setTimeout(r, 1000))
+
                 change_status(bot, 'place_and_dig')
 
                 await bot.chat(`/homes mine`)
@@ -148,23 +159,24 @@ const initBot = () => {
                     console.log('mine_iron_ore')
                     await mine_iron_ore(bot)
 
-                    const heldItem = bot.heldItem;
+                    let heldItem = bot.heldItem;
 
                     if (heldItem) {
                         console.log(`手上工具耐久度: ${(heldItem.maxDurability-heldItem.durabilityUsed).toFixed()} / ${heldItem.maxDurability}`); // durability of held item
                     }
 
                     if ((Number(heldItem.maxDurability-heldItem.durabilityUsed).toFixed()) <= 200) {
-                        bot.chat('/warp XiaoXi_YT_2')
+                        bot.chat(config.exp_warp)
                         await new Promise(r => setTimeout(r, 1000));
                         let now_durability = (Number(heldItem.maxDurability-heldItem.durabilityUsed).toFixed())
                         while (now_durability < heldItem.maxDurability) {
+                            heldItem = bot.heldItem;
                             await new Promise(r => setTimeout(r, 1000));
                             now_durability = (Number(heldItem.maxDurability-heldItem.durabilityUsed).toFixed())
                             console.log(now_durability)
                         }
 
-                        bot.chat('/back')
+                        bot.chat(config.mine_warp)
                     }
 
                     await new Promise(r => setTimeout(r, 100))
@@ -177,16 +189,27 @@ const initBot = () => {
                 break
             
             case 'throw_raw_iron_block':
+                await bot.chat(config.mine_warp)
+                await new Promise(r => setTimeout(r, 1000))
+
                 change_status(bot, 'throw_raw_iron_block')
 
                 await throw_raw_iron_block(bot)
                 break
+
+            default:
+                await bot.chat(config.mine_warp)
+                await new Promise(r => setTimeout(r, 1000))
         }
 
+        await bot.chat(config.mine_warp)
+        await new Promise(r => setTimeout(r, 1000))
 
         while (true) {
-            console.log('starting_process')
+            config = JSON.parse(fs.readFileSync("config.json"), 'utf8');
 
+            console.log('starting_process')
+            
             change_status(bot, 'get_iron_ore')
 
             await get_iron_ore(bot)
@@ -232,23 +255,24 @@ const initBot = () => {
                 console.log('mine_iron_ore')
                 await mine_iron_ore(bot)
 
-                const heldItem = bot.heldItem;
+                let heldItem = bot.heldItem;
                 
                 if (heldItem) {
                     console.log(`手上工具耐久度: ${(heldItem.maxDurability-heldItem.durabilityUsed).toFixed()} / ${heldItem.maxDurability}`); // durability of held item
                 }
 
                 if ((Number(heldItem.maxDurability-heldItem.durabilityUsed).toFixed()) <= 200) {
-                    bot.chat('/warp XiaoXi_YT_2')
+                    bot.chat(config.exp_warp)
                     await new Promise(r => setTimeout(r, 1000));
                     let now_durability = (Number(heldItem.maxDurability-heldItem.durabilityUsed).toFixed())
                     while (now_durability < heldItem.maxDurability) {
+                        heldItem = bot.heldItem;
                         await new Promise(r => setTimeout(r, 1000));
                         now_durability = (Number(heldItem.maxDurability-heldItem.durabilityUsed).toFixed())
                         console.log(now_durability)
                     }
 
-                    bot.chat('/back')
+                    bot.chat(config.mine_warp)
                 }
 
                 await new Promise(r => setTimeout(r, 100))
@@ -293,6 +317,8 @@ const initBot = () => {
                 }
             }
         }
+
+        if (jsonMsg.toString().includes('目標生命 : ')) return
 
         console.log(jsonMsg.toAnsi());
     });
