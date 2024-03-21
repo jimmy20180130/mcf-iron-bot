@@ -209,6 +209,7 @@ const initBot = () => {
             config = JSON.parse(fs.readFileSync("config.json"), 'utf8');
 
             console.log('starting_process')
+            await bot.chat(config.mine_warp)
             
             change_status(bot, 'get_iron_ore')
 
