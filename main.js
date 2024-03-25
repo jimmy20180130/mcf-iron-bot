@@ -118,6 +118,7 @@ const initBot = () => {
                         }
 
                         bot.chat(config.mine_warp)
+                        await new Promise(r => setTimeout(r, 1000))
                     }
 
                     await new Promise(r => setTimeout(r, 100))
@@ -177,6 +178,7 @@ const initBot = () => {
                         }
 
                         bot.chat(config.mine_warp)
+                        await new Promise(r => setTimeout(r, 1000))
                     }
 
                     await new Promise(r => setTimeout(r, 100))
@@ -209,8 +211,6 @@ const initBot = () => {
             config = JSON.parse(fs.readFileSync("config.json"), 'utf8');
 
             console.log('starting_process')
-            await bot.chat(config.mine_warp)
-            
             change_status(bot, 'get_iron_ore')
 
             await get_iron_ore(bot)
@@ -221,8 +221,9 @@ const initBot = () => {
                 if (bot.inventory.items().find(item => item.name === 'iron_ingot')) {
                     break
                 } else {
+                    bot.chat(config.mine_warp)
                     console.log('waiting for iron_ingot')
-                    await new Promise(r => setTimeout(r, 100))
+                    await new Promise(r => setTimeout(r, 2000))
                 }
             }
             
@@ -274,6 +275,7 @@ const initBot = () => {
                     }
 
                     bot.chat(config.mine_warp)
+                    await new Promise(r => setTimeout(r, 1000))
                 }
 
                 await new Promise(r => setTimeout(r, 100))
@@ -287,8 +289,6 @@ const initBot = () => {
         }
     });
 
-    
-
     bot.on("message", (jsonMsg) => {
         var regex = /Summoned to server(\d+) by CONSOLE/;
         if (regex.exec(jsonMsg.toString())) {
@@ -299,6 +299,9 @@ const initBot = () => {
         let cache = JSON.parse(fs.readFileSync(`${process.cwd()}/cache.json`, 'utf8'))
 
         if (/^\[([A-Za-z0-9_]+) -> 您\] .*/.exec(jsonMsg.toString())) {
+            if (jsonMsg.toString().startsWith('[領地] 您沒有')) {
+                process.exit(1)
+            }
             const msg = jsonMsg.toString()
             const pattern = /^\[([A-Za-z0-9_]+) -> 您\] .*/;
             const match = pattern.exec(msg);
