@@ -298,10 +298,11 @@ const initBot = () => {
 
         let cache = JSON.parse(fs.readFileSync(`${process.cwd()}/cache.json`, 'utf8'))
 
+        if (jsonMsg.toString().startsWith('[領地] 您沒有')) {
+            process.exit(1)
+        }
+
         if (/^\[([A-Za-z0-9_]+) -> 您\] .*/.exec(jsonMsg.toString())) {
-            if (jsonMsg.toString().startsWith('[領地] 您沒有')) {
-                process.exit(1)
-            }
             const msg = jsonMsg.toString()
             const pattern = /^\[([A-Za-z0-9_]+) -> 您\] .*/;
             const match = pattern.exec(msg);
