@@ -14,11 +14,11 @@ async function get_iron_ore(bot) {
 
     console.log(`shulker_box found: ${shulker_box.position}`)
 
-    let shulker_box_window = await bot.openContainer(shulker_box)
+    let shulker_box_window = await bot.openBlock(shulker_box)
 
     while (!shulker_box_window) {
         console.log('shulker_box_window not found...\nopening shulker_box_window...')
-        shulker_box_window = await bot.openContainer(shulker_box)
+        shulker_box_window = await bot.openBlock(shulker_box)
     }
 
     console.log('opened shulker_box_window')
@@ -26,7 +26,7 @@ async function get_iron_ore(bot) {
     for (const item of shulker_box_window.containerItems()) {
         if (!shulker_box_window) {
             console.log('shulker_box_window not found...\nopening shulker_box_window...')
-            shulker_box_window = await bot.openContainer(shulker_box)
+            shulker_box_window = await bot.openBlock(shulker_box)
         }
 
         try {
@@ -104,7 +104,8 @@ async function place_iron_ore(bot) {
             [-1, 0, -1],
             [-1, 0, 1],
             [1, 0, -1],  
-            [1, 0, 1]
+            [1, 0, 1],
+            [0, 2, 0]
         ];
 
         let coords = [];
@@ -159,7 +160,8 @@ async function mine_iron_ore(bot) {
         [-1, 0, -1],
         [-1, 0, 1],
         [1, 0, -1],  
-        [1, 0, 1]
+        [1, 0, 1],
+        [0, 2, 0]
     ];
 
     let pickaxe = bot.inventory.items().find(item => item.name === 'netherite_pickaxe')
@@ -174,6 +176,7 @@ async function mine_iron_ore(bot) {
             let z = Math.floor(pos.z) + dir[2];
 
             console.log(`mining (${x}, ${Math.floor(pos.y) + y}, ${z})`)
+            console.log(`digtime: ${bot.digTime(bot.blockAt(new Vec3(x, Math.floor(pos.y) + y, z)))}`)
 
             if (bot.blockAt(new Vec3(x, Math.floor(pos.y) + y, z)).type == 0) {
                 continue
@@ -185,13 +188,16 @@ async function mine_iron_ore(bot) {
             }
             
             const dig_promise = bot.dig(bot.blockAt(new Vec3(x, Math.floor(pos.y) + y, z)), 'ignore', 'raycast')
+            let timeout
             const timeoutpromise = new Promise((resolve, reject) => {
-                setTimeout(() => {
+                timeout = setTimeout(() => {
                     resolve('timeout')
                 }, 500)
             })
 
             await Promise.race([dig_promise, timeoutpromise])
+            clearTimeout(timeout)
+            await new Promise(r => setTimeout(r, 50))
         }
     }
 
