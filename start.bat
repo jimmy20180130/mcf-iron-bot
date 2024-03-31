@@ -2,7 +2,9 @@
 cls
 echo bot will restart when it crashes
 title Jimmy Bot
+
 :StartServer
-start /wait node start.js
-echo (%time%) bot is offline! restarting the bot...
+echo (%time%) starting the bot
+start /wait node %~dp0/mcf-iron-bot-main/start.js
+echo (%time%) restarting the bot
 goto StartServer
