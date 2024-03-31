@@ -46,8 +46,5 @@ echo Installing packages...
 call npm i minecraft-data minecraft-protocol mineflayer prismarine-entity readline readline-sync silly-datetime moment-timezone
 echo packages installed
 
-:: 啟動 bot
-start node %~dp0/mcf-auto-place-bot-main/start.js
-
 :: exit
 exit /b
