@@ -4,13 +4,11 @@ const autoeat = require('mineflayer-auto-eat').plugin
 const fs = require("fs");
 const Vec3 = require('vec3')
 const inventoryViewer = require('mineflayer-web-inventory');
-const path = require('path');
+const { resolve } = require("path");
 const crafter = require("mineflayer-crafting-util").plugin
-const { get_iron_ore, shop_item, place_iron_ore, mine_iron_ore, throw_raw_iron_block } = require(path.resolve(__dirname, 'iron.js'))
-const configFilePath = path.resolve(__dirname, 'config.json');
-const cacheFilePath = path.resolve(__dirname, 'cache.json');
+const { get_iron_ore, shop_item, place_iron_ore, mine_iron_ore, throw_raw_iron_block } = require(`./iron.js`)
 
-let config = JSON.parse(fs.readFileSync(configFilePath), 'utf8');
+let config = JSON.parse(fs.readFileSync("config.json"), 'utf8');
 
 let bot;
 
@@ -30,7 +28,7 @@ const botArgs = {
 };
 
 function change_status(bot, status) {
-    let cache = JSON.parse(fs.readFileSync(cacheFilePath, 'utf8'))
+    let cache = JSON.parse(fs.readFileSync(`${process.cwd()}/cache.json`, 'utf8'))
     cache.status = status
     fs.writeFileSync(`${process.cwd()}/cache.json`, JSON.stringify(cache))
     console.log('[INFO] 目前狀態:' + status)
@@ -55,7 +53,7 @@ const initBot = () => {
         bot.chat('bot is online')
         console.log('[INFO] ' + `地圖已載入`);
 
-        config = JSON.parse(fs.readFileSync(configFilePath), 'utf8');
+        config = JSON.parse(fs.readFileSync("config.json"), 'utf8');
 
         rl.on("line", function (line) {
             bot.chat(line)
@@ -63,7 +61,7 @@ const initBot = () => {
 
         await new Promise(r => setTimeout(r, 10000))
 
-        let cache = JSON.parse(fs.readFileSync(cacheFilePath, 'utf8'))
+        let cache = JSON.parse(fs.readFileSync(`${process.cwd()}/cache.json`, 'utf8'))
         let iron_ore_count = 0
 
         await bot.chat(config.mine_warp)
@@ -112,12 +110,24 @@ const initBot = () => {
                         bot.chat(config.exp_warp)
                         await new Promise(r => setTimeout(r, 1000));
                         let now_durability = (Number(heldItem.maxDurability-heldItem.durabilityUsed).toFixed())
-                        while (now_durability < heldItem.maxDurability) {
-                            heldItem = bot.heldItem;
-                            await new Promise(r => setTimeout(r, 1000));
-                            now_durability = (Number(heldItem.maxDurability-heldItem.durabilityUsed).toFixed())
-                            console.log(now_durability)
-                        }
+                        const fix_pickaxe = new Promise(async (resolve, reject) => {
+                            while (now_durability < heldItem.maxDurability) {
+                                heldItem = bot.heldItem;
+                                await new Promise(r => setTimeout(r, 1000));
+                                now_durability = (Number(heldItem.maxDurability-heldItem.durabilityUsed).toFixed())
+                                console.log(now_durability)
+                            }
+
+                            resolve('fixed')
+                        })
+
+                        const timeoutpromise = new Promise((resolve, reject) => {
+                            timeout = setTimeout(() => {
+                                resolve('timeout')
+                            }, 30000)
+                        })
+
+                        await Promise.race([fix_pickaxe, timeoutpromise])
 
                         bot.chat(config.mine_warp)
                         await new Promise(r => setTimeout(r, 1000))
@@ -223,7 +233,7 @@ const initBot = () => {
         await new Promise(r => setTimeout(r, 1000))
 
         while (true) {
-            config = JSON.parse(fs.readFileSync(configFilePath), 'utf8');
+            config = JSON.parse(fs.readFileSync("config.json"), 'utf8');
 
             console.log('starting_process')
             change_status(bot, 'get_iron_ore')
@@ -282,7 +292,7 @@ const initBot = () => {
                     bot.chat(config.exp_warp)
                     await new Promise(r => setTimeout(r, 1000));
                     let now_durability = (Number(heldItem.maxDurability-heldItem.durabilityUsed).toFixed())
-                    
+
                     const fix_pickaxe = new Promise(async (resolve, reject) => {
                         while (now_durability < heldItem.maxDurability) {
                             heldItem = bot.heldItem;
@@ -324,7 +334,7 @@ const initBot = () => {
             bot.chat(config.warp)
         }
 
-        let cache = JSON.parse(fs.readFileSync(cacheFilePath, 'utf8'))
+        let cache = JSON.parse(fs.readFileSync(`${process.cwd()}/cache.json`, 'utf8'))
 
         if (jsonMsg.toString().startsWith('[領地] 您沒有')) {
             process.exit(1)
