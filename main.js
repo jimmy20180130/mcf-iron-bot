@@ -4,7 +4,6 @@ const autoeat = require('mineflayer-auto-eat').plugin
 const fs = require("fs");
 const Vec3 = require('vec3')
 const inventoryViewer = require('mineflayer-web-inventory');
-const { resolve } = require("path");
 const crafter = require("mineflayer-crafting-util").plugin
 const { get_iron_ore, shop_item, place_iron_ore, mine_iron_ore, throw_raw_iron_block } = require(`./iron.js`)
 
@@ -41,7 +40,7 @@ const initBot = () => {
     let options = {
         port: 40241
     }
-    
+    console.log('[INFO] ' + `正在啟動機器人...`);
     inventoryViewer(bot, options)
     
     bot.once("login", () => {
