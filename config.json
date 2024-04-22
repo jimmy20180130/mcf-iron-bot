@@ -6,6 +6,7 @@
         "auth": "microsoft",
         "version": "1.20.1"
     },
-    "mine_warp": "/warp despondentreclus",
-    "exp_warp": "/warp come_dimmy_6"
+    "mine_warp": "/warp your_warp",
+    "exp_warp": "/warp your_warp",
+    "position": [-4887, 128, 3328]
 }

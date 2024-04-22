@@ -58,12 +58,14 @@ const initBot = () => {
             bot.chat(line)
         });
 
+        await new Promise(r => setTimeout(r, 5000))
+
+        await bot.chat(config.mine_warp)
+
         await new Promise(r => setTimeout(r, 10000))
 
         let cache = JSON.parse(fs.readFileSync(`${process.cwd()}/cache.json`, 'utf8'))
         let iron_ore_count = 0
-
-        await bot.chat(config.mine_warp)
 
         switch (cache.status) {
             case 'get_iron_ore':

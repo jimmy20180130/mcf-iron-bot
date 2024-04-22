@@ -1,13 +1,20 @@
-const Item = require('prismarine-item')('1.20')
 const Vec3 = require('vec3').Vec3
+const fs = require('fs')
 
 async function get_iron_ore(bot) {
+    let config = JSON.parse(fs.readFileSync(`${process.cwd()}/config.json`, 'utf8'))
+
     let shulker_box = bot.findBlock({
+        point: bot.entity.position,
         matching: 613,
-        maxDistance: 5
+        maxDistance: 7
     })
 
     if (!shulker_box) {
+        shulker_box = bot.blockAt(new Vec3(config.position[0], config.position[1], config.position[2]))
+    }
+
+    if (!shulker_box || shulker_box.type != 613) {
         console.log('shulker_box not found')
         return
     }
@@ -105,6 +112,7 @@ async function place_iron_ore(bot) {
             [-1, 0, 1],
             [1, 0, -1],  
             [1, 0, 1],
+            [0, 2, 0],
             [0, 2, 0]
         ];
 
@@ -126,23 +134,25 @@ async function place_iron_ore(bot) {
     console.log(`equpped iron_ore`)
 
     for (const coord of await getSurroundingBlockCoords()) {
-        console.log(`place ${coord}`)
-        if (bot.blockAt(coord).type == 0) {
-            try {
-                const heldItem = bot.heldItem
-                if (heldItem && heldItem.name != 'iron_ore') {
-                    let iron_ore = bot.inventory.items().find(item => item.name === 'iron_ore')
-                    if (!iron_ore) return
-                    await bot.equip(51, 'hand')
-                    console.log(`equpped iron_ore`)
-                }
+        try {
+            console.log(`place ${coord}`)
+            if (bot.blockAt(coord).type == 0) {
+                try {
+                    const heldItem = bot.heldItem
+                    if (heldItem && heldItem.name != 'iron_ore') {
+                        let iron_ore = bot.inventory.items().find(item => item.name === 'iron_ore')
+                        if (!iron_ore) return
+                        await bot.equip(51, 'hand')
+                        console.log(`equpped iron_ore`)
+                    }
 
-                await bot._genericPlace(bot.blockAt(coord), new Vec3(0, 1, 0), { forceLook: 'ignore' })
+                    await bot._genericPlace(bot.blockAt(coord), new Vec3(0, 1, 0), { forceLook: 'ignore' })
 
-            } catch (e) {}
+                } catch (e) {}
 
-            await new Promise(r => setTimeout(r, 50))
-        }
+                await new Promise(r => setTimeout(r, 50))
+            }
+        } catch (e) {}
     }
 
     console.log('finished placing iron ore')
@@ -160,8 +170,7 @@ async function mine_iron_ore(bot) {
         [-1, 0, -1],
         [-1, 0, 1],
         [1, 0, -1],  
-        [1, 0, 1],
-        [0, 2, 0]
+        [1, 0, 1]
     ];
 
     let pickaxe = bot.inventory.items().find(item => item.name === 'netherite_pickaxe')
@@ -172,13 +181,11 @@ async function mine_iron_ore(bot) {
     for (let y of yValues) {
 
         for (let dir of dirs) {
+            if (!bot) continue
             let x = Math.floor(pos.x) + dir[0];
             let z = Math.floor(pos.z) + dir[2];
 
-            console.log(`mining (${x}, ${Math.floor(pos.y) + y}, ${z})`)
-            console.log(`digtime: ${bot.digTime(bot.blockAt(new Vec3(x, Math.floor(pos.y) + y, z)))}`)
-
-            if (bot.blockAt(new Vec3(x, Math.floor(pos.y) + y, z)).type == 0) {
+            if (!bot.blockAt(new Vec3(x, Math.floor(pos.y) + y, z)) || bot.blockAt(new Vec3(x, Math.floor(pos.y) + y, z)).type == 0 || !bot.blockAt(new Vec3(x, Math.floor(pos.y) + y, z)).type) {
                 continue
             } else if (bot.heldItem && bot.heldItem.name != 'netherite_pickaxe') {
                 let pickaxe = bot.inventory.items().find(item => item.name === 'netherite_pickaxe')
@@ -186,6 +193,9 @@ async function mine_iron_ore(bot) {
                 await bot.equip(804, 'hand')
                 console.log(`equpped pickaxe`)
             }
+
+            console.log(`mining (${x}, ${Math.floor(pos.y) + y}, ${z})`)
+            console.log(`digtime: ${bot.digTime(bot.blockAt(new Vec3(x, Math.floor(pos.y) + y, z)))}`)
             
             const dig_promise = bot.dig(bot.blockAt(new Vec3(x, Math.floor(pos.y) + y, z)), 'ignore', 'raycast')
             let timeout
