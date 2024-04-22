@@ -62,6 +62,10 @@ const initBot = () => {
 
         await bot.chat(config.mine_warp)
 
+        await new Promise(r => setTimeout(r, 5000))
+
+        await bot.chat(`/sethome mine`)
+
         await new Promise(r => setTimeout(r, 10000))
 
         let cache = JSON.parse(fs.readFileSync(`${process.cwd()}/cache.json`, 'utf8'))
