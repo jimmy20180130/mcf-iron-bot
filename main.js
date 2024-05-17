@@ -6,6 +6,7 @@ const Vec3 = require('vec3')
 const inventoryViewer = require('mineflayer-web-inventory');
 const crafter = require("mineflayer-crafting-util").plugin
 const { get_iron_ore, shop_item, place_iron_ore, mine_iron_ore, throw_raw_iron_block } = require(`./iron.js`)
+const portfinder = require('portfinder');
 
 let config = JSON.parse(fs.readFileSync("config.json"), 'utf8');
 
@@ -33,13 +34,25 @@ function change_status(bot, status) {
     console.log('[INFO] 目前狀態:' + status)
 }
 
-const initBot = () => {
+const initBot = async () => {
     bot = mineflayer.createBot(botArgs);
     bot.loadPlugin(autoeat)
     bot.loadPlugin(crafter)
+    
+    let port = await portfinder.getPortPromise({
+        startPort: 7000,
+        stopPort: 65535
+    }).catch((error) => {
+        console.log('[ERROR] ' + `無法找到可用的端口`);
+        throw error;
+    });
+    
+    console.log('[INFO] ' + `已找到可用的端口 ${port}`);
+
     let options = {
-        port: 40241
+        port: port
     }
+
     console.log('[INFO] ' + `正在啟動機器人...`);
     inventoryViewer(bot, options)
     
