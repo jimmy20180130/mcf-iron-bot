@@ -14,5 +14,44 @@
         "readline": "^1.3.0",
         "readline-sync": "^1.4.10",
         "silly-datetime": "^0.1.2"
+    },
+    "version": "1.5.0",
+    "description": "a minecraft bot that can make iron ingot into raw iron (Only works in mcfallout.net)",
+    "main": "start.js",
+    "bin": "start.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "build": "pkg start.js -t node18-win-x64 -c package.json --assets main.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/jimmy20180130/mcf-iron-bot.git"
+    },
+    "keywords": [
+        "minecraft",
+        "iron",
+        "raw_iron",
+        "mineflayer",
+        "bot",
+        "mcfallout.net"
+    ],
+    "author": "jimmy20180130",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/jimmy20180130/mcf-iron-bot/issues"
+    },
+    "homepage": "https://github.com/jimmy20180130/mcf-iron-bot#readme",
+    "pkg": {
+        "assets": [
+            "node_modules/**/*",
+            "main.js",
+            "main.txt",
+            "iron.js"
+        ],
+        "scripts": [
+            "main.js",
+            "start.js",
+            "iron.js"
+        ]
     }
 }

@@ -8,5 +8,6 @@
     },
     "mine_warp": "/warp your_warp",
     "exp_warp": "/warp your_warp",
+    "trash_warp": "",
     "position": [-4887, 128, 3328]
 }

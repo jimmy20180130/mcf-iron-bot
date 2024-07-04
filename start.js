@@ -1,5 +1,6 @@
 const { spawn } = require('child_process');
 const readline = require('readline')
+const path = require('path');
 
 let appProcess = undefined;
 
@@ -15,7 +16,7 @@ rl.on('line', async function (line) {
 });
 
 function startApp() {
-    appProcess = spawn('node', ['main.js']);
+    appProcess = spawn('node', [path.join(__dirname, 'main.js')]);
 
     appProcess.stdout.on('data', (data) => {
         console.log(`${String(data).replace(/\n$/, '')}`);

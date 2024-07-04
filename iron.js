@@ -225,6 +225,15 @@ async function throw_raw_iron_block(bot) {
     }
 }
 
+async function throw_trash(bot) {
+    for (const item of bot.inventory.items()) {
+        if (item.type != 804) {
+            console.log(`丟出 ${item.name} ${item.count}`)
+            await bot.tossStack(item)
+        }
+    }
+}
+
 // async function craft_iron_ore(bot) {
 //     bot.chat('/homes craft')
 //     function stringifyItem(item) {
@@ -303,5 +312,6 @@ module.exports = {
     shop_item,
     place_iron_ore,
     mine_iron_ore,
-    throw_raw_iron_block
+    throw_raw_iron_block,
+    throw_trash
 }
