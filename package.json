@@ -8,6 +8,7 @@
         "mineflayer-crafting-util": "0.0.18",
         "mineflayer-web-inventory": "1.8.5",
         "moment-timezone": "^0.5.44",
+        "pkg": "^5.8.1",
         "portfinder": "^1.0.32",
         "portscanner": "^2.2.0",
         "prismarine-entity": "^2.3.1",

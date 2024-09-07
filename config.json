@@ -2,9 +2,7 @@
     "bot_args": {
         "host": "sg.mcfallout.net",
         "port": "25565",
-        "username": "example@example.com",
-        "auth": "microsoft",
-        "version": "1.20.1"
+        "username": "example@example.com"
     },
     "mine_warp": "/warp your_warp",
     "exp_warp": "/warp your_warp",
