@@ -2,11 +2,16 @@ const mineflayer = require("mineflayer");
 const readline = require("readline");
 const autoeat = require('mineflayer-auto-eat').plugin
 const fs = require("fs");
-const Vec3 = require('vec3')
 const inventoryViewer = require('mineflayer-web-inventory');
 const crafter = require("mineflayer-crafting-util").plugin
-const { get_iron_ore, shop_item, place_iron_ore, mine_iron_ore, throw_raw_iron_block, throw_trash } = require(`./iron.js`)
+const getIron = require('./func/getIron')
+const shopItem = require('./func/shopItem')
+const placeIronOre = require('./func/placeOre')
+const mineIronOre = require('./func/mineOre')
+const throwRawIronBlock = require('./func/throwIron')
+const throwTrash = require('./func/throwTrash')
 const portfinder = require('portfinder');
+const Logger = require('./utils/logger')
 
 let config = JSON.parse(fs.readFileSync("config.json"), 'utf8');
 
@@ -27,99 +32,165 @@ const botArgs = {
     checkTimeoutInterval: 60 * 1000
 };
 
-function change_status(bot, status) {
+async function change_status(status) {
     let cache = JSON.parse(fs.readFileSync(`${process.cwd()}/cache.json`, 'utf8'))
     cache.status = status
     fs.writeFileSync(`${process.cwd()}/cache.json`, JSON.stringify(cache))
-    console.log('[INFO] 目前狀態:' + status)
+    Logger.log('[\x1b[34mM\x1b[0mAIN] 目前狀態:' + status)
 }
 
-async function get_iron_ore_process(bot) {
-    change_status(bot, 'get_iron_ore')
-    await get_iron_ore(bot)
-
-    while (!bot.inventory.items().find(item => item.name === 'iron_ingot')) {
-        await get_iron_ore(bot)
-
-        if (bot.inventory.items().find(item => item.name === 'iron_ingot')) {
-            break
-        } else {
-            bot.chat(config.mine_warp)
-            console.log('waiting for iron_ingot')
-            await new Promise(r => setTimeout(r, 2000))
-        }
+async function checkPickaxe(bot) {
+    try {
+        await bot.equip(804, 'hand')
+    } catch (e) {
+        Logger.error(`[\x1b[34mM\x1b[0mAIN] 發生錯誤: ${e}`)
+        return
     }
-}
 
-let iron_ore_count = 0
+    let heldItem = bot.heldItem;
 
-async function shop_item_process(bot) {
-    await bot.chat(config.mine_warp)
-    await new Promise(r => setTimeout(r, 1000))
-
-    change_status(bot, 'shop_item')
-    await shop_item(bot)
-
-    for (const item of bot.inventory.items()) {
-        if (item.name == 'iron_ore') {
-            iron_ore_count += item.count
-        }
+    if (heldItem) {
+        Logger.log(`[\x1b[34mM\x1b[0mAIN] 手上工具耐久度: ${(heldItem.maxDurability-heldItem.durabilityUsed).toFixed()} / ${heldItem.maxDurability}`); // durability of held item
+    } else {
+        Logger.error(`[\x1b[34mM\x1b[0mAIN] 手上沒有任何物品`);
+        return
     }
-}
 
-async function place_and_dig_process(bot) {
-    await bot.chat(`/homes mine`)
-
-    for (let i=0; i< iron_ore_count; i++) {
-        let iron_countt = 0
-        for (const item of bot.inventory.items()) {
-            if (item.name == 'iron_ore') {
-                iron_countt += item.count
+    if ((Number(heldItem.maxDurability-heldItem.durabilityUsed).toFixed()) <= 200) {
+        bot.chat(config.exp_warp)
+        await new Promise(r => setTimeout(r, 3000));
+        let now_durability = (Number(heldItem.maxDurability-heldItem.durabilityUsed).toFixed())
+        const fix_pickaxe = new Promise(async (resolve, reject) => {
+            while (now_durability < heldItem.maxDurability) {
+                heldItem = bot.heldItem;
+                await new Promise(r => setTimeout(r, 1000));
+                now_durability = (Number(heldItem.maxDurability-heldItem.durabilityUsed).toFixed())
+                Logger.log('[\x1b[34mM\x1b[0mAIN] 修復鎬子中，目前耐久度: ' + now_durability)
             }
-        }
 
-        iron_ore_count = iron_countt
+            resolve('fixed')
+        })
 
-        console.log('place_iron_ore')
-        await place_iron_ore(bot)
-        console.log('mine_iron_ore')
-        await mine_iron_ore(bot)
+        const timeoutpromise = new Promise((resolve, reject) => {
+            timeout = setTimeout(() => {
+                resolve('timeout')
+            }, 30000)
+        })
 
-        let heldItem = bot.heldItem;
+        await Promise.race([fix_pickaxe, timeoutpromise])
 
-        if (heldItem) {
-            console.log(`手上工具耐久度: ${(heldItem.maxDurability-heldItem.durabilityUsed).toFixed()} / ${heldItem.maxDurability}`); // durability of held item
-        }
-
-        if ((Number(heldItem.maxDurability-heldItem.durabilityUsed).toFixed()) <= 200) {
-            bot.chat(config.exp_warp)
-            await new Promise(r => setTimeout(r, 1000));
-            let now_durability = (Number(heldItem.maxDurability-heldItem.durabilityUsed).toFixed())
-            const fix_pickaxe = new Promise(async (resolve, reject) => {
-                while (now_durability < heldItem.maxDurability) {
-                    heldItem = bot.heldItem;
-                    await new Promise(r => setTimeout(r, 1000));
-                    now_durability = (Number(heldItem.maxDurability-heldItem.durabilityUsed).toFixed())
-                    console.log(now_durability)
-                }
-
-                resolve('fixed')
-            })
-
-            const timeoutpromise = new Promise((resolve, reject) => {
-                timeout = setTimeout(() => {
-                    resolve('timeout')
-                }, 30000)
-            })
-
-            await Promise.race([fix_pickaxe, timeoutpromise])
-
-            bot.chat(config.mine_warp)
-            await new Promise(r => setTimeout(r, 1000))
-        }
-
-        await new Promise(r => setTimeout(r, 100))
+        await bot.chat(config.mine_warp)
+        await new Promise(r => setTimeout(r, 5000));
     }
+}
+
+async function startProcess(bot, previousStatus=undefined) {
+    let ironCount = bot.inventory.items().filter(item => item.name === 'raw_iron_block').reduce((sum, item) => sum + item.count, 0);
+    let minedCount = 0
+    
+    switch (previousStatus) {
+        case 'get_iron_ore':
+            await getIron(bot)
+            await throwTrash(bot)
+            await bot.chat(config.mine_warp)
+            await change_status('shop_item')
+            await shopItem(bot)
+
+            ironCount = bot.inventory.items().filter(item => item.name === 'iron_ore').reduce((sum, item) => sum + item.count, 0);
+            await change_status('place_and_dig')
+            try {
+                await bot.closeWindow(bot.currentWindow)
+            } catch (e) {}
+            Logger.log(`[\x1b[34mM\x1b[0mAIN] 鐵原礦方塊數量: ${ironCount}`)
+            for (let i=0; i<ironCount/25; i++) {
+                await placeIronOre(bot)
+                minedCount += await mineIronOre(bot)
+                ironCount = bot.inventory.items().filter(item => item.name === 'iron_ore').reduce((sum, item) => sum + item.count, 0);
+                await checkPickaxe(bot)
+            }
+
+            await change_status('throw_raw_iron_block')
+            await throwRawIronBlock(bot)
+            break
+        case 'shop_item':
+            await bot.chat(config.mine_warp)
+            await change_status('shop_item')
+            await shopItem(bot)
+
+            ironCount = bot.inventory.items().filter(item => item.name === 'iron_ore').reduce((sum, item) => sum + item.count, 0);
+            await change_status('place_and_dig')
+            try {
+                await bot.closeWindow(bot.currentWindow)
+            } catch (e) {}
+            Logger.log(`[\x1b[34mM\x1b[0mAIN] 鐵原礦方塊數量: ${ironCount}`)
+            for (let i=0; i<ironCount/25; i++) {
+                await placeIronOre(bot)
+                minedCount += await mineIronOre(bot)
+                ironCount = bot.inventory.items().filter(item => item.name === 'iron_ore').reduce((sum, item) => sum + item.count, 0);
+                await checkPickaxe(bot)
+            }
+            await change_status('throw_raw_iron_block')
+            await throwRawIronBlock(bot)
+            break
+        case 'place_and_dig':
+            ironCount = bot.inventory.items().filter(item => item.name === 'iron_ore').reduce((sum, item) => sum + item.count, 0);
+            await change_status('place_and_dig')
+            try {
+                await bot.closeWindow(bot.currentWindow)
+            } catch (e) {}
+            Logger.log(`[\x1b[34mM\x1b[0mAIN] 鐵原礦方塊數量: ${ironCount}`)
+            for (let i=0; i<ironCount/25; i++) {
+                await placeIronOre(bot)
+                minedCount += await mineIronOre(bot)
+                ironCount = bot.inventory.items().filter(item => item.name === 'iron_ore').reduce((sum, item) => sum + item.count, 0);
+                await checkPickaxe(bot)
+            }
+            await change_status('throw_raw_iron_block')
+            await throwRawIronBlock(bot)
+            break
+        case 'throw_raw_iron_block':
+            await throwRawIronBlock(bot)
+            break
+
+        default:
+            break
+    }
+
+    await new Promise(r => setTimeout(r, 2000))
+
+    await change_status('get_iron_ore')
+    await getIron(bot)
+    await throwTrash(bot)
+    await bot.chat(config.mine_warp)
+    await change_status('shop_item')
+    await shopItem(bot)
+
+    ironCount = bot.inventory.items().filter(item => item.name === 'iron_ore').reduce((sum, item) => sum + item.count, 0);
+    await change_status('place_and_dig')
+    try {
+        await bot.closeWindow(bot.currentWindow)
+    } catch (e) {}
+    Logger.log(`[\x1b[34mM\x1b[0mAIN] 鐵原礦方塊數量: ${ironCount}`)
+
+    async function placeDigIronProcess() {
+        for (let i=0; i<ironCount/25; i++) {
+            await placeIronOre(bot)
+            minedCount += await mineIronOre(bot)
+            ironCount = bot.inventory.items().filter(item => item.name === 'iron_ore').reduce((sum, item) => sum + item.count, 0);
+            await checkPickaxe(bot)
+        }
+
+        if (ironCount/25 > 0) {
+            await placeDigIronProcess()
+        }
+    }
+
+    await placeDigIronProcess()
+
+    await change_status('throw_raw_iron_block')
+    await throwRawIronBlock(bot)
+
+    return minedCount
 }
 
 const initBot = async () => {
@@ -131,105 +202,63 @@ const initBot = async () => {
         startPort: 7000,
         stopPort: 65535
     }).catch((error) => {
-        console.log('[ERROR] ' + `無法找到可用的端口`);
+        Logger.error(`[\x1b[34mM\x1b[0mAIN] 無法找到可用的端口`);
         throw error;
     });
     
-    console.log('[INFO] ' + `已找到可用的端口 ${port}`);
+    Logger.log(`[\x1b[34mM\x1b[0mAIN] 已找到可用的端口 ${port}`);
 
     let options = {
         port: port
     }
 
-    console.log('[INFO] ' + `正在啟動機器人...`);
+    Logger.log(`[\x1b[34mM\x1b[0mAIN] 正在啟動機器人...`);
     inventoryViewer(bot, options)
     
     bot.once("login", () => {
         let botSocket = bot._client.socket;
-        console.log('[INFO] ' + `已成功登入 ${botSocket.server ? botSocket.server : botSocket._host}`);
+        Logger.log(`[\x1b[34mM\x1b[0mAIN] 已成功登入 ${botSocket.server ? botSocket.server : botSocket._host}`);
     });
 
     bot.once("spawn", async () => {
         bot.chat('bot is online')
-        console.log('[INFO] ' + `地圖已載入`);
+        Logger.log(`[\x1b[34mM\x1b[0mAIN] 地圖已載入`);
 
         config = JSON.parse(fs.readFileSync("config.json"), 'utf8');
+        let cache = JSON.parse(fs.readFileSync(`${process.cwd()}/cache.json`, 'utf8'))
 
         rl.on("line", function (line) {
             bot.chat(line)
         });
 
         await new Promise(r => setTimeout(r, 5000))
-
         await bot.chat(config.mine_warp)
-
         await new Promise(r => setTimeout(r, 5000))
-
         await bot.chat(`/sethome mine`)
-
-        await new Promise(r => setTimeout(r, 10000))
-
-        let cache = JSON.parse(fs.readFileSync(`${process.cwd()}/cache.json`, 'utf8'))
-
-        switch (cache.status) {
-            case 'get_iron_ore':
-                break
-            case 'shop_item':
-                await shop_item_process(bot)
-                change_status(bot, 'place_and_dig')
-                await place_and_dig_process(bot)
-
-                change_status(bot, 'throw_raw_iron_block')
-                await throw_raw_iron_block(bot)
-
-                break
-            case 'place_and_dig':
-                await place_and_dig_process(bot)
-
-                change_status(bot, 'throw_raw_iron_block')
-                await throw_raw_iron_block(bot)
-
-                break
-            
-            case 'throw_raw_iron_block':
-                change_status(bot, 'throw_raw_iron_block')
-
-                await throw_raw_iron_block(bot)
-                break
-        }
-
-        await bot.chat(config.mine_warp)
-        await new Promise(r => setTimeout(r, 1000))
+        await startProcess(bot, cache.status)
 
         while (true) {
-            config = JSON.parse(fs.readFileSync("config.json"), 'utf8');
-            console.log('[INFO] ' + `正在進行一次循環`);
+            let mined_count = await startProcess(bot)
+            await bot.chat(config.mine_warp)
 
-            change_status(bot, 'get_iron_ore')
-            await get_iron_ore_process(bot)
+            cache = JSON.parse(fs.readFileSync(`${process.cwd()}/cache.json`, 'utf8'))
+            cache.iron_ore_mined += mined_count
+            fs.writeFileSync(`${process.cwd()}/cache.json`, JSON.stringify(cache))
 
-            change_status(bot, 'shop_item')
-            await shop_item_process(bot)
-
-            change_status(bot, 'place_and_dig')
-            await place_and_dig_process(bot)
-
-            change_status(bot, 'throw_raw_iron_block')
-            await throw_raw_iron_block(bot)
-
-
-            bot.chat(config.trash_warp)
-            await new Promise(r => setTimeout(r, 5000))
-            await throw_trash(bot)
-            bot.chat(config.mine_warp)
-            await new Promise(r => setTimeout(r, 5000))
-
-            console.log('[INFO] ' + `已完成一次循環`)
-        }
+            Logger.log('[\x1b[34mM\x1b[0mAIN] 已完成一次循環')
+        }   
     });
 
+    bot.on('windowClose', (window) => {
+        console.log('window closed', window?.title || 'unknown')
+    })
+
+    bot.on('windowOpen', (window) => {
+        console.log('window opened', window?.title || 'unknown')
+    })
+
     bot.on("message", (jsonMsg) => {
-        var regex = /Summoned to server(\d+) by CONSOLE/;
+        var regex = /Summoned to server(\d+) by Logger/;
         if (regex.exec(jsonMsg.toString())) {
             bot.chat(config.server)
             bot.chat(config.warp)
@@ -238,7 +267,7 @@ const initBot = async () => {
         let cache = JSON.parse(fs.readFileSync(`${process.cwd()}/cache.json`, 'utf8'))
 
         if (jsonMsg.toString().startsWith('[領地] 您沒有')) {
-            process.exit(1)
+            Logger.error(`[\x1b[34mM\x1b[0mAIN] 您沒有該領地的權限`)
         }
 
         if (/^\[([A-Za-z0-9_]+) -> 您\] .*/.exec(jsonMsg.toString())) {
@@ -252,8 +281,11 @@ const initBot = async () => {
                 const commandName = args.split(' ')[0].toLowerCase();
 
                 switch (commandName) {
+                    case 'count':
+                        bot.chat(`/m ${playerid} 我已挖取 ${cache.iron_ore_mined} 個鐵原礦`)
+                        break
                     default:
-                        bot.chat(`/m ${playerid} 此為 Jimmy 開發的 [廢土鐵原礦機器人] ，如有疑問請私訊 Discord: xiaoxi_tw`)
+                        bot.chat(`/m ${playerid} 此為 Jimmy 開發的 [廢土鐵原礦機器人] ，如有疑問請私訊 Discord: jimmy.young`)
                         break
                 }
             }
@@ -261,27 +293,33 @@ const initBot = async () => {
 
         if (jsonMsg.toString().includes('目標生命 : ')) return
 
-        console.log(jsonMsg.toAnsi());
+        Logger.log(jsonMsg.toAnsi());
     });
 
     bot.on("end", () => {
-        console.log('[INFO] ' + `機器人已斷線，將於 5 秒後重啟`);
+        Logger.log(`[\x1b[34mM\x1b[0mAIN] 機器人已斷線，將於 5 秒後重啟`);
         for (listener of rl.listeners('line')) {
             rl.removeListener('line', listener)
         }
         
-        setTimeout(initBot, 5000);
+        setTimeout(process.exit(246), 5000);
     });
 
     bot.on("kicked", (reason) => {
-        console.log('[WARN] ' + `機器人被伺服器踢出\n原因：${reason}`);
+        Logger.warn(`[\x1b[34mM\x1b[0mAIN] 機器人被伺服器踢出，原因：${reason}`);
+        process.exit(246)
     });
+
+    bot.on('death', () => {
+        Logger.warn(`[\x1b[34mM\x1b[0mAIN] 機器人死亡了`);
+        process.exit(246)
+    })
 
     bot.on("error", (err) => {
         if (err.code === "ECONNREFUSED") {
-            console.log('[ERROR] ' + `連線到 ${err.address}:${err.port} 時失敗`);
+            Logger.error(`[\x1b[34mM\x1b[0mAIN] 連線到 ${err.address}:${err.port} 時失敗`);
         } else {
-            console.log('[ERROR] ' + `發生無法預期的錯誤: ${err}`);
+            Logger.error(`[\x1b[34mM\x1b[0mAIN] 發生無法預期的錯誤: ${err}`);
         }
 
         process.exit(1);
@@ -291,19 +329,19 @@ const initBot = async () => {
 initBot();
 
 process.on("unhandledRejection", async (error) => {
-    console.log(error)
-    console.log('[ERROR] ' + error.message)
+    Logger.log(error)
+    Logger.error('[\x1b[34mM\x1b[0mAIN] ' + error.message)
     process.exit(1)
 });
 
 process.on("uncaughtException", async (error) => {
-    console.log(error)
-    console.log('[ERROR] ' + error.message)
+    Logger.log(error)
+    Logger.error('[\x1b[34mM\x1b[0mAIN] ' + error.message)
     process.exit(1)
 });
 
 process.on("uncaughtExceptionMonitor", async (error) => {
-    console.log(error)
-    console.log('[ERROR] ' + error.message)
+    Logger.log(error)
+    Logger.error('[\x1b[34mM\x1b[0mAIN] ' + error.message)
     process.exit(1)
 });

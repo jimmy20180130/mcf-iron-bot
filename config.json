@@ -6,6 +6,5 @@
     },
     "mine_warp": "/warp your_warp",
     "exp_warp": "/warp your_warp",
-    "trash_warp": "/rtp or /warp your_warp of /homes your_home",
-    "position": [-4887, 128, 3328]
+    "shulker_position": []
 }
