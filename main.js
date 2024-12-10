@@ -312,7 +312,7 @@ const initBot = async () => {
 
     bot.on('death', () => {
         Logger.warn(`[\x1b[34mM\x1b[0mAIN] 機器人死亡了`);
-        process.exit(246)
+        bot.respawn()
     })
 
     bot.on("error", (err) => {
